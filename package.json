@@ -1,0 +1,36 @@
+{
+  "name": "habit-manager-backend",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src/index.ts --format esm",
+    "start": "node dist/index.js",
+    "studio": "npx prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^6.19.2",
+    "nanoid": "^5.1.6",
+    "prisma": "^6.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.0",
+    "@types/pg": "^8.16.0",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.7.4",
+    "fastify-type-provider-zod": "^6.1.0",
+    "pg": "^8.18.0",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  }
+}

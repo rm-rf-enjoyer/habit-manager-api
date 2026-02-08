@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id // UUID устройства
+  createdAt DateTime @default(now())
+  
+  // Списки, которые пользователь создал
+  ownedLists    List[] @relation("Owner")
+  
+  // Списки, в которых пользователь участвует (включая свои)
+  collaborations Collaborator[]
+}
+
+model List {
+  id         String   @id @default(cuid())
+  title      String
+  inviteKey  String   @unique
+  createdAt  DateTime @default(now())
+  
+  ownerId    String
+  owner      User     @relation("Owner", fields: [ownerId], references: [id])
+  
+  tasks      Task[]
+  members    Collaborator[]
+}
+
+model Collaborator {
+  id      String @id @default(cuid())
+  userId  String
+  listId  String
+  user    User   @relation(fields: [userId], references: [id])
+  list    List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listId]) // Одно устройство не может войти в список дважды
+}
+
+model Task {
+  id        String  @id @default(cuid())
+  text      String
+  isDone    Boolean @default(false)
+  listId    String
+  list      List    @relation(fields: [listId], references: [id], onDelete: Cascade)
+}
