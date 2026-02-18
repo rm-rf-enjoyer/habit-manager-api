@@ -1,44 +1,26 @@
-# --- ЭТАП 1: Сборка (Builder) ---
-FROM node:20-alpine AS builder
-
-# Устанавливаем рабочую директорию
+FROM node:20-alpine
 WORKDIR /app
 
-# Сначала копируем только файлы зависимостей (для кэширования слоев)
+# Системные либы
+RUN apk add --no-cache openssl libc6-compat
+
+# Копируем только то, что нужно для установки
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Устанавливаем все зависимости (включая devDependencies для билда)
+# Устанавливаем всё
 RUN npm install
 
-# Копируем остальной код
+# Копируем исходники
 COPY . .
 
-# Генерируем клиент Prisma
+# Генерируем клиент и собираем проект в JS
 RUN npx prisma generate
+RUN npx tsup src/index.ts --format esm --clean
 
-# Если у тебя TypeScript, раскомментируй строку ниже:
-# RUN npm run build
-
-
-# --- ЭТАП 2: Финальный образ (Runner) ---
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Копируем из первого этапа только самое нужное
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/dist ./dist 
-# ^ (если используешь TS, копируй папку dist, если чистый JS — просто копируй файлы .js)
-
-# Копируем исходники (если это чистый JS без билда)
-COPY . .
-
-# Пробрасываем порт Fastify
 EXPOSE 3000
 
-# Команда запуска
-# Сначала применяем миграции к базе, потом стартуем
-CMD npx prisma migrate deploy && node index.js
+# Запускаем через node, а не npx, чтобы не тратить ресурсы.
+# Ограничиваем использование памяти самим Node.js
+ENV NODE_OPTIONS="--max-old-space-size=512"
+CMD npx prisma migrate deploy && node dist/index.mjs
